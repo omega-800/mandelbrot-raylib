@@ -2,11 +2,6 @@
 
 #define MAX_INPUT_CHARS 6
 
-void handle_input(struct Input *input, int *framesCounter);
-struct Input *create_input(unsigned int type, unsigned int max_chars,
-                           unsigned int x, unsigned int y, char *name);
-void destroy_input(struct Input *input);
-
 struct Input {
   Rectangle box;
   // bitfields just because i can
@@ -20,3 +15,9 @@ struct Input {
     bool tgl;
   };
 };
+
+int handle_input(struct Input *input, int *framesCounter);
+struct Input *create_input(unsigned int type, unsigned int max_chars,
+                           unsigned int x, unsigned int y, char *name);
+void destroy_input(struct Input *input);
+

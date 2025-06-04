@@ -22,7 +22,7 @@ struct Input *create_input(unsigned int type, unsigned int max_chars,
 void destroy_input(struct Input *input) {
   if (input->type == 0)
     free(input->str);
-  free(input->name);
+  // free(input->name);
   free(input);
 }
 
@@ -37,18 +37,17 @@ int digits(int n) {
   return r;
 }
 
-void handle_input(struct Input *input, int *framesCounter) {
-  int letterCount;
-  char *value;
+int handle_input(struct Input *input, int *framesCounter) {
+  int letterCount = input->max_chars;
+  char *value = malloc((input->max_chars + 1) * sizeof(char));
   switch (input->type) {
   case 0:
     letterCount = strnlen(input->str, input->max_chars + 1);
-    // TODO: cpy
-    value = input->str;
+    strncpy(value, input->str, input->max_chars + 1);
     break;
   case 1:
     letterCount = digits(input->num);
-    snprintf(value, input->max_chars, "%d", input->num);
+    snprintf(value, input->max_chars + 1, "%d", input->num);
     break;
   case 2:
     letterCount = 1;
@@ -109,21 +108,25 @@ void handle_input(struct Input *input, int *framesCounter) {
     DrawText("_", (int)input->box.x + 8 + MeasureText(value, 40),
              (int)input->box.y + 12, 40, MAROON);
 
-    // TODO: set value
-  /*
+  int ret = 0;
   switch (input->type) {
   case 0:
-    letterCount = strnlen(input->str, input->max_chars + 1);
-    value = input->str;
+    if (0 == strncmp(input->str, value, input->max_chars + 1))
+      break;
+    ret = 1;
+    strncpy(input->str, value, input->max_chars + 1);
     break;
-  case 1:
-    letterCount = digits(input->num);
-    snprintf(value, input->max_chars, "%d", input->num);
-    break;
-  case 2:
-    letterCount = 1;
-    value = "";
+  case 1: {
+    int val = atoi(value);
+    if (input->num == val)
+      break;
+    ret = 1;
+    input->num = val;
     break;
   }
-*/
+  case 2:
+    break;
+  }
+  free(value);
+  return ret;
 }
