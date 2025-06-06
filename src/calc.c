@@ -8,7 +8,7 @@
 #define MAX_THREAD_LOAD 100000000
 
 struct MandelbrotSlice {
-  int maxIter;
+  int max_iter;
   int height;
   int width;
   int from;
@@ -30,7 +30,7 @@ void *_calc_mandelbrot(void *slice) {
 
     float x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
     int iter = 0;
-    while (x2 + y2 <= 4 && iter < s->maxIter) {
+    while (x2 + y2 <= 4 && iter < s->max_iter) {
       y1 = 2 * x1 * y1 + y0;
       x1 = x2 - y2 + x0;
       x2 = x1 * x1;
@@ -38,7 +38,7 @@ void *_calc_mandelbrot(void *slice) {
       iter += 1;
     }
     pthread_mutex_lock(s->lock);
-    s->pixels[i] = iter * 256 / s->maxIter;
+    s->pixels[i] = iter * 256 / s->max_iter;
     pthread_mutex_unlock(s->lock);
   }
   free(slice);
@@ -47,14 +47,15 @@ void *_calc_mandelbrot(void *slice) {
 
 unsigned char *calc_mandelbrot(unsigned char *pixels, const int width,
                                const int height, struct Section *frame,
-                               const int maxIter) {
+                               const int max_iter) {
+  clock_t t;
+  t = clock();
   const int size = width * height;
-  const int load = maxIter * size;
-  int pool_size = load > MAX_THREADS * MAX_THREAD_LOAD
-                            ? MAX_THREADS
-                            : load / MAX_THREAD_LOAD;
-  if (pool_size == 0) pool_size = 1;
-  printf("%d", frame->x);
+  const int load = max_iter * size;
+  int pool_size = load > MAX_THREADS * MAX_THREAD_LOAD ? MAX_THREADS
+                                                       : load / MAX_THREAD_LOAD;
+  if (pool_size == 0)
+    pool_size = 1;
 
   // FIXME:
   const int chunk = size / pool_size;
@@ -67,13 +68,13 @@ unsigned char *calc_mandelbrot(unsigned char *pixels, const int width,
   pthread_mutex_init(&lock, NULL);
   for (int i = 0; i < pool_size; i++) {
     struct MandelbrotSlice *slice = malloc(sizeof(struct MandelbrotSlice));
-    slice->maxIter = maxIter;
+    slice->max_iter = max_iter;
     slice->width = width;
     slice->height = height;
     slice->from = i * chunk;
     // FIXME:
     slice->to = (i + 1) * chunk;
-    //FIXME:
+    // FIXME:
     slice->x = frame->x;
     slice->y = frame->y;
     slice->zoom = frame->zoom;
@@ -88,6 +89,11 @@ unsigned char *calc_mandelbrot(unsigned char *pixels, const int width,
       perror("failed to join thread");
 
   pthread_mutex_destroy(&lock);
+
+  t = clock() - t;
+  double time_taken = ((double)t) / CLOCKS_PER_SEC;
+  printf("calc took %fs to execute with x(%d) y(%d) zoom(%.2f) max_iter(%d) threads(%d)\n",
+         time_taken, frame->x, frame->y, frame->zoom, max_iter, pool_size);
 
   return pixels;
 }

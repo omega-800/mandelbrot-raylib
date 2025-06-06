@@ -37,31 +37,31 @@ int digits(int n) {
   return r;
 }
 
-int handle_input(struct Input *input, int *framesCounter) {
-  int letterCount = input->max_chars;
+int handle_input(struct Input *input, int *frames_counter) {
+  int letter_count = input->max_chars;
   char *value = malloc((input->max_chars + 1) * sizeof(char));
   switch (input->type) {
   case 0:
-    letterCount = strnlen(input->str, input->max_chars + 1);
+    letter_count = strnlen(input->str, input->max_chars + 1);
     strncpy(value, input->str, input->max_chars + 1);
     break;
   case 1:
-    letterCount = digits(input->num);
+    letter_count = digits(input->num);
     snprintf(value, input->max_chars + 1, "%d", input->num);
     break;
   case 2:
-    letterCount = 1;
+    letter_count = 1;
     value = "";
     break;
   }
-  bool mouseOnText = false;
+  bool mouse_on_text = false;
 
   if (CheckCollisionPointRec(GetMousePosition(), input->box))
-    mouseOnText = true;
+    mouse_on_text = true;
   else
-    mouseOnText = false;
+    mouse_on_text = false;
 
-  if (mouseOnText) {
+  if (mouse_on_text) {
     SetMouseCursor(MOUSE_CURSOR_IBEAM);
 
     int key = GetCharPressed();
@@ -71,31 +71,31 @@ int handle_input(struct Input *input, int *framesCounter) {
       if (((input->type == 1 && (key >= 48) && (key <= 57)) ||
            (input->type == 0 && (key >= 32) && (key <= 125)))
 
-          && (letterCount < input->max_chars)) {
-        value[letterCount] = (char)key;
-        value[letterCount + 1] = '\0';
-        letterCount++;
+          && (letter_count < input->max_chars)) {
+        value[letter_count] = (char)key;
+        value[letter_count + 1] = '\0';
+        letter_count++;
       }
 
       key = GetCharPressed();
     }
 
     if (IsKeyPressed(KEY_BACKSPACE)) {
-      letterCount--;
-      if (letterCount < 0)
-        letterCount = 0;
-      value[letterCount] = '\0';
+      letter_count--;
+      if (letter_count < 0)
+        letter_count = 0;
+      value[letter_count] = '\0';
     }
   } else
     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 
-  if (mouseOnText)
-    (*framesCounter)++;
+  if (mouse_on_text)
+    (*frames_counter)++;
   else
-    *framesCounter = 0;
+    *frames_counter = 0;
 
   DrawRectangleRec(input->box, LIGHTGRAY);
-  if (mouseOnText)
+  if (mouse_on_text)
     DrawRectangleLines((int)input->box.x, (int)input->box.y,
                        (int)input->box.width, (int)input->box.height, RED);
   else
@@ -104,8 +104,8 @@ int handle_input(struct Input *input, int *framesCounter) {
   DrawText(value, (int)input->box.x + 5, (int)input->box.y + 8, 40, MAROON);
   DrawText(input->name, (int)input->box.x + input->box.width + 5, (int)input->box.y + 8, 40, MAROON);
 
-  if (mouseOnText && letterCount < MAX_INPUT_CHARS &&
-      ((*framesCounter / 20) % 2) == 0)
+  if (mouse_on_text && letter_count < MAX_INPUT_CHARS &&
+      ((*frames_counter / 20) % 2) == 0)
     DrawText("_", (int)input->box.x + 8 + MeasureText(value, 40),
              (int)input->box.y + 12, 40, MAROON);
 

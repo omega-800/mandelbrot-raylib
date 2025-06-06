@@ -16,7 +16,7 @@ struct Input {
   };
 };
 
-int handle_input(struct Input *input, int *framesCounter);
+int handle_input(struct Input *input, int *frames_counter);
 struct Input *create_input(unsigned int type, unsigned int max_chars,
                            unsigned int x, unsigned int y, char *name);
 void destroy_input(struct Input *input);

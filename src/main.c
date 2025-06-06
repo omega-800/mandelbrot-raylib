@@ -28,28 +28,30 @@ void draw_mandelbrot(int width, int height, struct Section *frame,
 }
 
 int main(void) {
+
   struct Section frame = {0, 0, 1.0};
 
-  struct Input *maxIterIn =
+  struct Input *max_iter_in =
       create_input(1, MAX_INPUT_CHARS, 0, SCREEN_HEIGHT - 50, "MAX ITER");
-  maxIterIn->num = 100;
-  struct Input *rIn = create_input(1, 3, 0, SCREEN_HEIGHT - 210, "R");
-  rIn->num = 10;
-  struct Input *gIn = create_input(1, 3, 0, SCREEN_HEIGHT - 160, "G");
-  gIn->num = 100;
-  struct Input *bIn = create_input(1, 3, 0, SCREEN_HEIGHT - 110, "B");
-  bIn->num = 255;
+  max_iter_in->num = 100;
+  struct Input *r_in = create_input(1, 3, 0, SCREEN_HEIGHT - 210, "R");
+  r_in->num = 10;
+  struct Input *g_in = create_input(1, 3, 0, SCREEN_HEIGHT - 160, "G");
+  g_in->num = 100;
+  struct Input *b_in = create_input(1, 3, 0, SCREEN_HEIGHT - 110, "B");
+  b_in->num = 255;
   unsigned char *pixels =
       malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(unsigned char));
-  calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame, maxIterIn->num);
+  calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame, max_iter_in->num);
 
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "mandelbrot");
+  SetTraceLogLevel(LOG_WARNING); 
 
   SetTargetFPS(30);
 
-  int framesCounter = 0;
+  int frames_counter = 0;
 
-  Color c = (Color){rIn->num, gIn->num, bIn->num, 255};
+  Color c = (Color){r_in->num, g_in->num, b_in->num, 255};
 
   draw_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels, c);
   bool do_draw = false;
@@ -58,15 +60,15 @@ int main(void) {
     ClearBackground(c);
     if (do_draw)
       calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame,
-                      maxIterIn->num);
+                      max_iter_in->num);
     draw_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels, c);
     do_draw = false;
 
-    c = (Color){rIn->num, gIn->num, bIn->num, 255};
+    c = (Color){r_in->num, g_in->num, b_in->num, 255};
 
-    if ((handle_input(maxIterIn, &framesCounter)) ||
-        handle_input(rIn, &framesCounter) ||
-        handle_input(gIn, &framesCounter) || handle_input(bIn, &framesCounter))
+    if ((handle_input(max_iter_in, &frames_counter)) ||
+        handle_input(r_in, &frames_counter) ||
+        handle_input(g_in, &frames_counter) || handle_input(b_in, &frames_counter))
       do_draw = true;
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -93,10 +95,10 @@ int main(void) {
 
     EndDrawing();
   }
-  destroy_input(maxIterIn);
-  destroy_input(rIn);
-  destroy_input(gIn);
-  destroy_input(bIn);
+  destroy_input(max_iter_in);
+  destroy_input(r_in);
+  destroy_input(g_in);
+  destroy_input(b_in);
   free(pixels);
 
   CloseWindow();
