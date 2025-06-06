@@ -42,10 +42,11 @@ int main(void) {
   b_in->num = 255;
   unsigned char *pixels =
       malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(unsigned char));
-  calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame, max_iter_in->num);
+  calc_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels,
+                  max_iter_in->num);
 
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "mandelbrot");
-  SetTraceLogLevel(LOG_WARNING); 
+  SetTraceLogLevel(LOG_WARNING);
 
   SetTargetFPS(30);
 
@@ -59,7 +60,7 @@ int main(void) {
     BeginDrawing();
     ClearBackground(c);
     if (do_draw)
-      calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame,
+      calc_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels,
                       max_iter_in->num);
     draw_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels, c);
     do_draw = false;
@@ -68,7 +69,8 @@ int main(void) {
 
     if ((handle_input(max_iter_in, &frames_counter)) ||
         handle_input(r_in, &frames_counter) ||
-        handle_input(g_in, &frames_counter) || handle_input(b_in, &frames_counter))
+        handle_input(g_in, &frames_counter) ||
+        handle_input(b_in, &frames_counter))
       do_draw = true;
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {

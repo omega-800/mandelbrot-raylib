@@ -45,8 +45,8 @@ void *_calc_mandelbrot(void *slice) {
   pthread_exit(NULL);
 }
 
-unsigned char *calc_mandelbrot(unsigned char *pixels, const int width,
-                               const int height, struct Section *frame,
+unsigned char *calc_mandelbrot(const int width, const int height,
+                               struct Section *frame, unsigned char *pixels,
                                const int max_iter) {
   clock_t t;
   t = clock();
@@ -92,7 +92,8 @@ unsigned char *calc_mandelbrot(unsigned char *pixels, const int width,
 
   t = clock() - t;
   double time_taken = ((double)t) / CLOCKS_PER_SEC;
-  printf("calc took %fs to execute with x(%d) y(%d) zoom(%.2f) max_iter(%d) threads(%d)\n",
+  printf("calc took %fs to execute with x(%d) y(%d) zoom(%.2f) max_iter(%d) "
+         "threads(%d)\n",
          time_taken, frame->x, frame->y, frame->zoom, max_iter, pool_size);
 
   return pixels;
