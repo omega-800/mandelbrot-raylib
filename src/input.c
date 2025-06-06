@@ -102,6 +102,7 @@ int handle_input(struct Input *input, int *framesCounter) {
     DrawRectangleLines((int)input->box.x, (int)input->box.y,
                        (int)input->box.width, (int)input->box.height, DARKGRAY);
   DrawText(value, (int)input->box.x + 5, (int)input->box.y + 8, 40, MAROON);
+  DrawText(input->name, (int)input->box.x + input->box.width + 5, (int)input->box.y + 8, 40, MAROON);
 
   if (mouseOnText && letterCount < MAX_INPUT_CHARS &&
       ((*framesCounter / 20) % 2) == 0)
@@ -118,7 +119,7 @@ int handle_input(struct Input *input, int *framesCounter) {
     break;
   case 1: {
     int val = atoi(value);
-    if (input->num == val)
+    if (input->num == val || val == 0)
       break;
     ret = 1;
     input->num = val;

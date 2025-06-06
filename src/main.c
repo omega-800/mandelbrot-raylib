@@ -2,10 +2,15 @@
 #include "input.h"
 #include "raylib.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-void draw_mandelbrot(int width, int height, int maxIter, Color c) {
-  ClearBackground(c);
-  unsigned char *pixels = calc_mandelbrot(width, height, maxIter);
+#define SCREEN_WIDTH 1600
+#define SCREEN_HEIGHT 900
+#define ZOOM_SCALE 2.0
+#define MAX_DBG_CHARS 32
+
+void draw_mandelbrot(int width, int height, struct Section *frame,
+                     unsigned char *pixels, Color c) {
   Image img = {.data = pixels,
                .width = width,
                .height = height,
@@ -13,48 +18,77 @@ void draw_mandelbrot(int width, int height, int maxIter, Color c) {
                .mipmaps = 1};
   Texture2D texture = LoadTextureFromImage(img);
   DrawTexture(texture, 0, 0, c);
-  UnloadImage(img);
+  // FIXME:
+  // UnloadImage(img);
+
+  char dbg[MAX_DBG_CHARS];
+  snprintf((char *)&dbg, MAX_DBG_CHARS, "x: %d, y: %d, Z: %.2f", frame->x,
+           frame->y, frame->zoom);
+  DrawText(dbg, 0, 0, 20, MAROON);
 }
 
 int main(void) {
-  const int screenWidth = 1600;
-  const int screenHeight = 900;
-
-  int xFrom = 0;
-  int xTo = 0;
-  int yFrom = 0;
-  int yTo = 0;
+  struct Section frame = {0, 0, 1.0};
 
   struct Input *maxIterIn =
-      create_input(1, MAX_INPUT_CHARS, 0, screenHeight - 50, "asdf");
+      create_input(1, MAX_INPUT_CHARS, 0, SCREEN_HEIGHT - 50, "MAX ITER");
   maxIterIn->num = 100;
-  struct Input *rIn = create_input(1, 3, 0, screenHeight - 110, "R");
-  rIn->num = 0;
-  struct Input *gIn = create_input(1, 3, 0, screenHeight - 160, "G");
+  struct Input *rIn = create_input(1, 3, 0, SCREEN_HEIGHT - 210, "R");
+  rIn->num = 10;
+  struct Input *gIn = create_input(1, 3, 0, SCREEN_HEIGHT - 160, "G");
   gIn->num = 100;
-  struct Input *bIn = create_input(1, 3, 0, screenHeight - 210, "B");
-  bIn->num = 200;
+  struct Input *bIn = create_input(1, 3, 0, SCREEN_HEIGHT - 110, "B");
+  bIn->num = 255;
+  unsigned char *pixels =
+      malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(unsigned char));
+  calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame, maxIterIn->num);
 
-  InitWindow(screenWidth, screenHeight, "mandelbrot");
+  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "mandelbrot");
 
-  SetTargetFPS(60);
+  SetTargetFPS(30);
 
   int framesCounter = 0;
 
-  draw_mandelbrot(screenWidth, screenHeight, maxIterIn->num,
-                  (Color){rIn->num, gIn->num, bIn->num, 255});
+  Color c = (Color){rIn->num, gIn->num, bIn->num, 255};
+
+  draw_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels, c);
+  bool do_draw = false;
   while (!WindowShouldClose()) {
     BeginDrawing();
+    ClearBackground(c);
+    if (do_draw)
+      calc_mandelbrot(pixels, SCREEN_WIDTH, SCREEN_HEIGHT, &frame,
+                      maxIterIn->num);
+    draw_mandelbrot(SCREEN_WIDTH, SCREEN_HEIGHT, &frame, pixels, c);
+    do_draw = false;
 
-    if ((handle_input(maxIterIn, &framesCounter) && maxIterIn->num > 0) ||
+    c = (Color){rIn->num, gIn->num, bIn->num, 255};
+
+    if ((handle_input(maxIterIn, &framesCounter)) ||
         handle_input(rIn, &framesCounter) ||
         handle_input(gIn, &framesCounter) || handle_input(bIn, &framesCounter))
-      draw_mandelbrot(screenWidth, screenHeight, maxIterIn->num,
-                      (Color){rIn->num, gIn->num, bIn->num, 255});
+      do_draw = true;
 
-    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
       Vector2 pos = GetMousePosition();
-      printf("%f,%f",pos.x, pos.y);
+      float s_x = (SCREEN_WIDTH / ZOOM_SCALE) * 0.5;
+      float s_y = (SCREEN_HEIGHT / ZOOM_SCALE) * 0.5;
+      int new_x = 0 > pos.x - s_x              ? 0
+                  : SCREEN_WIDTH < pos.x + s_x ? SCREEN_WIDTH - (2 * s_x)
+                                               : pos.x - s_x;
+      int new_y = 0 > pos.y - s_y               ? 0
+                  : SCREEN_HEIGHT < pos.y + s_y ? SCREEN_HEIGHT - (2 * s_y)
+                                                : pos.y - s_y;
+      frame.x += (int)(new_x / frame.zoom);
+      frame.y += (int)(new_y / frame.zoom);
+      frame.zoom *= ZOOM_SCALE;
+      do_draw = true;
+    }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+      frame.x = 0;
+      frame.y = 0;
+      frame.zoom = 1.0;
+      do_draw = true;
     }
 
     EndDrawing();
@@ -63,6 +97,7 @@ int main(void) {
   destroy_input(rIn);
   destroy_input(gIn);
   destroy_input(bIn);
+  free(pixels);
 
   CloseWindow();
   return 0;
